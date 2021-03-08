@@ -3,43 +3,18 @@ import React, { useRef } from 'react';
 import io from 'socket.io-client';
 import useStyle from './style';
 import SendIcon from '@material-ui/icons/Send';
+import DeleteIcon from '@material-ui/icons/Delete';
 import classNames from 'classnames';
 
 const ChatRoom = (props) => {
-    // const messages = [
-    //     {
-    //         id: "",
-    //         msg: "Hi it's me Tom",
-    //         sender: {
-    //             name: "tom",
-    //             gender: 0
-    //         }
-    //     }, {
-    //         id: "",
-    //         msg: "hi tom how you doing ?",
-    //         sender: {
-    //             name: "elli",
-    //             gender: 1
-    //         }
-    //     }, {
-    //         id: "",
-    //         msg: "thanks, and you ??",
-    //         sender: {
-    //             name: "tom",
-    //             gender: 0
-    //         }
-    //     }, {
-    //         id: "",
-    //         msg: "I am ok thanks",
-    //         sender: {
-    //             name: "elli",
-    //             gender: 1
-    //         }
-    //     },
-    // ];
 
-    const scrollableGrid = useRef();
+    const removeItemWithSlice = (items, index) => {
+        if (index === -1) return items;
+        return [...items.slice(0, index), ...items.slice(index + 1)]
+    }
+
     const classes = useStyle();
+    const scrollableGrid = useRef();
     //const socket = React.useRef(io.connect("http://localhost:3010/socket"));
     const socket = React.useRef(io('http://localhost:3010/socket', { transports: ['websocket', 'polling', 'flashsocket'] }));
 
@@ -49,7 +24,6 @@ const ChatRoom = (props) => {
     const sendMessage = () => {
         if (!newMessage) return;
         socket.current.emit("messageFromClientToServer", {
-            id: "10",
             msg: newMessage,
             sender: {
                 name: props.location.state.name,
@@ -65,13 +39,28 @@ const ChatRoom = (props) => {
         }
     }
 
+    const onDeleteClick = (id) => {
+        socket.current.emit("deleteMsg", id);
+    }
+
     React.useEffect(() => {
         //console.log(props.location.state)
+        // add msg
         socket.current.on("messageFromServerToClient", (msg) => {
             setMessages(messages => messages.concat(msg));
             scrollableGrid.current.scroll(0, scrollableGrid.current.scrollHeight);
+        });
+        // delete msg
+        socket.current.on("deleteMsg", id => {
+            setMessages((messages) => {
+                let findIndex = -1;
+                messages.forEach((message, index) => {
+                    if (message.id === id) findIndex = index;
+                });
+                return removeItemWithSlice(messages, findIndex);
+            })
         })
-    }, [])
+    }, []);
 
     return (
         <Paper className={classes.paper}>
@@ -82,7 +71,7 @@ const ChatRoom = (props) => {
                 <Grid item className={classes.middle} ref={scrollableGrid}>
                     {
                         messages.map((message) =>
-                            <Grid keys={message.id} item container className={classNames(classes.messageParent,
+                            <Grid key={message.id} item container className={classNames(classes.messageParent,
                                 message.sender.gender !== props.location.state.gender && classes.message_reverse)}
                                 alignItems={"center"}>
                                 <Grid item>
@@ -98,15 +87,27 @@ const ChatRoom = (props) => {
                                         <Typography className={classes.msg}>
                                             {message.msg}
                                         </Typography>
-                                        <Typography className={classes.date}>
-                                            {message.date.split('T')[1].split('.')[0]}
-                                        </Typography>
+                                        <Grid container>
+                                            <Grid item xs>
+                                                <Typography className={classes.date}>
+                                                    {message.date.split('T')[1].split('.')[0]}
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item>
+                                                {
+                                                    message.sender.name === props.location.state.name && 
+                                                    <IconButton className={classes.deleteBtn}
+                                                        onClick={() => onDeleteClick(message.id)}>
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                }
+                                            </Grid>
+                                        </Grid>
                                     </div>
                                 </Grid>
                             </Grid>
                         )
                     }
-
                 </Grid>
                 <Grid direction={"row-reverse"} item className={classes.footer} container justify={"center"} alignItems={"center"}>
                     <Grid item xs>

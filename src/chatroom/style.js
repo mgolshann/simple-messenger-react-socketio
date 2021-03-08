@@ -56,7 +56,7 @@ const useStyle = makeStyles(theme => ({
         border: "1px solid #ececec",
         borderRadius: "2rem",
         backgroundColor: "#ebebebe",
-        padding: "1rem 1.5rem"
+        padding: "1rem 1.5rem",
     },
     msg: {
         direction: "ltr"
@@ -74,7 +74,7 @@ const useStyle = makeStyles(theme => ({
     messageMe: {
         display: "flex",
         flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: "flex-end",
         marginLeft: "1rem",
         position: "relative",
         background: "#ebebeb",
@@ -95,7 +95,6 @@ const useStyle = makeStyles(theme => ({
         }
     },
     messageHe: {
-        display: "flex",
         flexDirection: "column",
         alignItems: "flex-end",
         position: "relative",
@@ -115,6 +114,11 @@ const useStyle = makeStyles(theme => ({
             marginTop: "-10px",
             marginRight: "-20px"
         }
+    },
+    deleteBtn: {
+        width: "1.2rem",
+        height: "1.2rem",
+        marginTop: "0.6rem"
     }
 }));
 
